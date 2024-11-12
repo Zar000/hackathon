@@ -1,5 +1,3 @@
-
-
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
@@ -33,7 +31,7 @@ int msleep(long msec) {
 
     return res;
 }
-
+//test for merge
 #define ROWS 10 // 2-9
 #define COLS 30 // 2-29
 #define WALL '#'
@@ -51,29 +49,37 @@ typedef struct {
     int Y;
 } Position;
 
-typedef struct {
-    Position body[MAX_SNAKE_LENGTH];
-    int length;
-} Snake;
+#define INITIALSNAKELENGTH 2
 
 typedef struct {
     int X;
     int Y;
 } Apple;
 
-Position getNextPosition(Snake snake, KeyboardDir direction) {
+typedef struct{
+    Position segments[ROWS * COLS];
+    int length;
+}Snake;
+
+
+
+
+Position getNextPosition(Snake *snake, KeyboardDir direction) {
     Position nextPosition;
-    nextPosition.X = snake.body[0].X;
-    nextPosition.Y = snake.body[0].Y;
+    nextPosition.X = snake->segments[0].X;
+    nextPosition.Y = snake->segments[0].Y;
 
     if (direction == KeyboardDir_Up) {
-        nextPosition.Y = (nextPosition.Y == 2) ? ROWS + 1 : nextPosition.Y - 1;
-    } else if (direction == KeyboardDir_Down) {
-        nextPosition.Y = (nextPosition.Y == ROWS + 1) ? 2 : nextPosition.Y + 1;
-    } else if (direction == KeyboardDir_Left) {
-        nextPosition.X = (nextPosition.X == 2) ? COLS + 1 : nextPosition.X - 1;
-    } else if (direction == KeyboardDir_Right) {
-        nextPosition.X = (nextPosition.X == COLS + 1) ? 2 : nextPosition.X + 1;
+        nextPosition.Y = (snake->segments[0].Y == 1) ? ROWS : snake->segments[0].Y - 1;
+    }
+    if (direction == KeyboardDir_Down) {
+        nextPosition.Y = (snake->segments[0].Y == ROWS) ? 1 : snake->segments[0].Y + 1;
+    }
+    if (direction == KeyboardDir_Left) {
+        nextPosition.X = (snake->segments[0].X == 1) ? COLS : snake->segments[0].X - 1;
+    }
+    if (direction == KeyboardDir_Right) {
+        nextPosition.X = (snake->segments[0].X == COLS) ? 1 : snake->segments[0].X + 1;
     }
 
     return nextPosition;
@@ -114,16 +120,23 @@ void drawBoundaries() {
     }
 }
 
-void drawSnake(Snake snake) {
-    for (int i = 0; i < snake.length; i++) {
-        gotoxy(snake.body[i].X, snake.body[i].Y);
-        printf("O");
+void drawSnake(Snake *snake) {
+    for (int i = 0; i < snake->length; i++) {
+        if (i == 0) {
+            // Huvudet
+            gotoxy(snake->segments[i].X, snake->segments[i].Y);
+            printf("O");
+        } else {
+            // Svansen
+            gotoxy(snake->segments[i].X, snake->segments[i].Y);
+            printf("o");
+        }
     }
 }
 
 void clearSnake(Snake snake) {
     for (int i = 0; i < snake.length; i++) {
-        gotoxy(snake.body[i].X, snake.body[i].Y);
+        gotoxy(snake.segments[i].X, snake.segments[i].Y);
         printf(" ");
     }
 }
@@ -150,23 +163,42 @@ int getNextKeyboardAction() {
     return 0;
 }
 
-void moveSnake(Snake *snake, KeyboardDir direction) {
-    Position newHead = getNextPosition(*snake, direction);
+int directionCounter = 0;
 
-    // Move the body
+
+void moveSnake(Snake *snake, KeyboardDir direction) {
+    
     for (int i = snake->length - 1; i > 0; i--) {
-        snake->body[i] = snake->body[i - 1];
+        snake->segments[i] = snake->segments[i - 1];
     }
 
-    // Place the new head at the front
-    snake->body[0] = newHead;
+    if (direction == KeyboardDir_Up) {
+        snake->segments[0].Y = (snake->segments[0].Y == 1) ? ROWS : snake->segments[0].Y - 1;
+    }
+    if (direction == KeyboardDir_Down) {
+        snake->segments[0].Y = (snake->segments[0].Y == ROWS) ? 1 : snake->segments[0].Y + 1;
+    }
+    if (direction == KeyboardDir_Left) {
+        snake->segments[0].X = (snake->segments[0].X == 1) ? COLS : snake->segments[0].X - 1;
+    }
+    if (direction == KeyboardDir_Right) {
+        snake->segments[0].X = (snake->segments[0].X == COLS) ? 1 : snake->segments[0].X + 1;
+    }
+
+    
+    directionCounter++;
+    
+    if (directionCounter >= 3) {
+        snake->length++;  
+        directionCounter = 0;
+    }
 }
 
 int main() {
     Snake snake;
     snake.length = 1;  // Initial length of the snake
-    snake.body[0].X = 5; 
-    snake.body[0].Y = 5;
+    snake.segments[0].X = 5; 
+    snake.segments[0].Y = 5;
     
 
     Apple apple;
@@ -180,7 +212,7 @@ int main() {
     while (1) {
         clearSnake(snake);
 
-        if (snake.body[0].X == apple.X && snake.body[0].Y == apple.Y) {
+        if (snake.segments[0].X == apple.X && snake.segments[0].Y == apple.Y) {
             placeApple(&apple);
             increaseScore();
             snake.length++;  // Grow the snake by adding a new segment
@@ -193,7 +225,7 @@ int main() {
         else if (ch == 'a') moveSnake(&snake, KeyboardDir_Left);
         else if (ch == 'd') moveSnake(&snake, KeyboardDir_Right);
         
-        drawSnake(snake);
+        drawSnake(&snake);
         drawApple(apple);
         msleep(250);
     }
