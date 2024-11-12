@@ -94,7 +94,7 @@ void gotoxy(int x, int y) {
 
 int score = 0;
 char *scoreText = "Score : ";
-
+int sleepTime = 250;
 void updateScore() {
     gotoxy(0, 30);
     printf("\r");
@@ -104,6 +104,10 @@ void updateScore() {
 
 void increaseScore() {
     score += 100;
+    if(sleepTime <= 100){
+        sleepTime = 110;
+    }
+    sleepTime -= 10;
     updateScore();
 }
 
@@ -148,8 +152,8 @@ void drawApple(Apple apple) {
 }
 
 void placeApple(Apple *apple) {
-    apple->X = (rand() % COLS) + 2;
-    apple->Y = (rand() % ROWS) + 2;
+    apple->X = (rand() % COLS+2) + 2;
+    apple->Y = (rand() % ROWS+2) + 2;
 }
 
 int kbhit2() {
@@ -232,7 +236,7 @@ int main() {
         moveSnake(&snake, snake.lastDir);
         drawSnake(&snake);
         drawApple(apple);
-        msleep(250);
+        msleep(sleepTime);
     }
     
     return 1;
