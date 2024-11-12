@@ -139,10 +139,10 @@ int main(){
         clearSnake(snake);
         gotoxy(0,0);
         char ch = getNextKeyboardAction();
-        if(ch == 'u') moveSnake(&snake,KeyboardDir_Up);
-        else if(ch == 'd') moveSnake(&snake,KeyboardDir_Down);
-        else if(ch == 'l') moveSnake(&snake,KeyboardDir_Left);
-        else if(ch == 'r') moveSnake(&snake,KeyboardDir_Right);
+        if(ch == 'w') moveSnake(&snake,KeyboardDir_Up);
+        else if(ch == 's') moveSnake(&snake,KeyboardDir_Down);
+        else if(ch == 'a') moveSnake(&snake,KeyboardDir_Left);
+        else if(ch == 'd') moveSnake(&snake,KeyboardDir_Right);
         drawSnake(snake);
         msleep(250);
     }
