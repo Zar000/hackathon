@@ -5,9 +5,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <conio.h>
-
+#include <string.h>
 #include <time.h>
 #include <errno.h>    
+
 
 void hideCursor(){
     printf("\e[?25l");
@@ -50,7 +51,20 @@ void gotoxy(int x,int y){
     printf("%c[%d;%df",0x1B,y,x);
 }
 
+int score = 0;
+char *scoreText = "Score : ";
 
+void updateScore(){
+    gotoxy(0, 30);
+    printf("\r");
+    printf("%s",scoreText);
+    printf("%d", score);
+}
+
+void increaseScore(){
+    score += 100;
+    updateScore();
+}
 
 void drawBoundaries(){
     for(int row = 0; row < ROWS+2;row++){
@@ -78,7 +92,6 @@ void clearSnake(Snake snake){
     printf(" ");
 }
 
-
 typedef enum {
     KeyboardDir_Left,    
     KeyboardDir_Right,
@@ -103,8 +116,6 @@ int getNextKeyboardAction(){
     return 0;
 }
 
-
-
 void moveSnake(Snake *snake,KeyboardDir direction){
     if(direction == KeyboardDir_Up){
         if(snake->Y == 2) snake->Y = ROWS+1;
@@ -122,8 +133,7 @@ void moveSnake(Snake *snake,KeyboardDir direction){
         if(snake->X == COLS+1) snake->X = 2;
         else snake->X++;
     }
-
-
+    increaseScore();
 }
 
 int main(){
