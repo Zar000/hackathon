@@ -8,19 +8,16 @@
 #include <time.h>
 #include <errno.h>    
 
-
-void hideCursor(){
+void hideCursor() {
     printf("\e[?25l");
 }
 
 /* msleep(): Sleep for the requested number of milliseconds. */
-int msleep(long msec)
-{
+int msleep(long msec) {
     struct timespec ts;
     int res;
 
-    if (msec < 0)
-    {
+    if (msec < 0) {
         errno = EINVAL;
         return -1;
     }
@@ -38,24 +35,32 @@ int msleep(long msec)
 #define ROWS 10 // 2-9
 #define COLS 30 // 2-29
 #define WALL '#'
-#define INITIALSNAKELENGTH 2
-
-typedef struct{
-    int X;
-    int Y;
-}Position;
-
-typedef struct{
-    Position segments[ROWS * COLS];
-    int length;
-}Snake;
+#define MAX_SNAKE_LENGTH 100
 
 typedef enum {
     KeyboardDir_Left,    
     KeyboardDir_Right,
     KeyboardDir_Up,
     KeyboardDir_Down,
-}KeyboardDir;
+} KeyboardDir;
+
+typedef struct {
+    int X;
+    int Y;
+} Position;
+
+#define INITIALSNAKELENGTH 2
+
+typedef struct {
+    int X;
+    int Y;
+} Apple;
+
+typedef struct{
+    Position segments[ROWS * COLS];
+    int length;
+}Snake;
+
 
 
 
@@ -82,42 +87,38 @@ Position getNextPosition(Snake *snake, KeyboardDir direction) {
 
 
 #define clrscr() printf("\e[1;1H\e[2J")
-void gotoxy(int x,int y){
-
-    printf("%c[%d;%df",0x1B,y,x);
+void gotoxy(int x, int y) {
+    printf("%c[%d;%df", 0x1B, y, x);
 }
 
 int score = 0;
 char *scoreText = "Score : ";
 
-
-void updateScore(){
+void updateScore() {
     gotoxy(0, 30);
     printf("\r");
-    printf("%s",scoreText);
+    printf("%s", scoreText);
     printf("%d", score);
 }
 
-void increaseScore(){
+void increaseScore() {
     score += 100;
     updateScore();
 }
 
-void drawBoundaries(){
-    for(int row = 0; row < ROWS+2;row++){
-        for(int col = 0; col < COLS+2; col++){
-            if(row == 0 || row == ROWS+1 || col == 0 || col == COLS+1){
-                printf("%c",WALL);         
+void drawBoundaries() {
+    for (int row = 0; row < ROWS + 2; row++) {
+        for (int col = 0; col < COLS + 2; col++) {
+            if (row == 0 || row == ROWS + 1 || col == 0 || col == COLS + 1) {
+                printf("%c", WALL);         
             }
-            else{
+            else {
                 printf(" ");
             }
         }
         printf("\n");
-        
     }
 }
-
 
 void drawSnake(Snake *snake) {
     for (int i = 0; i < snake->length; i++) {
@@ -133,26 +134,30 @@ void drawSnake(Snake *snake) {
     }
 }
 
-void clearSnake(Snake *snake) {
-    for (int i = 0; i < snake->length; i++) {
-        gotoxy(snake->segments[i].X, snake->segments[i].Y);
+void clearSnake(Snake snake) {
+    for (int i = 0; i < snake.length; i++) {
+        gotoxy(snake.segments[i].X, snake.segments[i].Y);
         printf(" ");
     }
 }
 
+void drawApple(Apple apple) {
+    gotoxy(apple.X, apple.Y);
+    printf("A");
+}
 
+void placeApple(Apple *apple) {
+    apple->X = (rand() % COLS) + 2;
+    apple->Y = (rand() % ROWS) + 2;
+}
 
-int kbhit2()
-{
+int kbhit2() {
     return _kbhit();
 }
 
-int getNextKeyboardAction(){
-    if(kbhit2()){
-        //gotoxy(0,ROWS+3);
-        //printf("Ange vad den ska göra:");
+int getNextKeyboardAction() {
+    if (kbhit2()) {
         char ch = getch();
-        //printf("%d",ch);
         return ch;
     }
     return 0;
@@ -189,33 +194,41 @@ void moveSnake(Snake *snake, KeyboardDir direction) {
     }
 }
 
-int main(){
+int main() {
     Snake snake;
-    snake.length = INITIALSNAKELENGTH;
-    for (int i = 0; i < snake.length; i++) {
-        snake.segments[i].X = 5 - i;
-        snake.segments[i].Y = 5;
-    }
+    snake.length = 1;  // Initial length of the snake
+    snake.segments[0].X = 5; 
+    snake.segments[0].Y = 5;
     
+
+    Apple apple;
+    srand(time(NULL));  
+    placeApple(&apple);
+
     clrscr();
     hideCursor();
     drawBoundaries();
+    
+    while (1) {
+        clearSnake(snake);
 
-    while(1){
-        clearSnake(&snake);
-        gotoxy(0,0); 
+        if (snake.segments[0].X == apple.X && snake.segments[0].Y == apple.Y) {
+            placeApple(&apple);
+            increaseScore();
+            snake.length++;  // Grow the snake by adding a new segment
+        }
+
+        gotoxy(0, 0);
         char ch = getNextKeyboardAction();
-        
-       
-        if(ch == 'w') moveSnake(&snake, KeyboardDir_Up);
-        else if(ch == 's') moveSnake(&snake, KeyboardDir_Down);
-        else if(ch == 'a') moveSnake(&snake, KeyboardDir_Left);
-        else if(ch == 'd') moveSnake(&snake, KeyboardDir_Right);
-
+        if (ch == 'w') moveSnake(&snake, KeyboardDir_Up);
+        else if (ch == 's') moveSnake(&snake, KeyboardDir_Down);
+        else if (ch == 'a') moveSnake(&snake, KeyboardDir_Left);
+        else if (ch == 'd') moveSnake(&snake, KeyboardDir_Right);
         
         drawSnake(&snake);
-        
+        drawApple(apple);
         msleep(250);
     }
-    return 0;
+    
+    return 1;
 }
