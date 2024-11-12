@@ -4,7 +4,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <conio.h>
+#include <string.h>
+#include <time.h>
 #include <errno.h>    
+
 
 void hideCursor(){
     printf("\e[?25l");
@@ -31,29 +34,77 @@ int msleep(long msec)
 
     return res;
 }
-
+//test for merge
 #define ROWS 10 // 2-9
 #define COLS 30 // 2-29
 #define WALL '#'
 #define INITIALSNAKELENGTH 2
 
-typedef struct {
+typedef struct{
     int X;
     int Y;
-} Position;
+}Position;
 
-typedef struct {
+typedef struct{
     Position segments[ROWS * COLS];
     int length;
-} Snake;
+}Snake;
+
+typedef enum {
+    KeyboardDir_Left,    
+    KeyboardDir_Right,
+    KeyboardDir_Up,
+    KeyboardDir_Down,
+}KeyboardDir;
+
+
+
+Position getNextPosition(Snake *snake, KeyboardDir direction) {
+    Position nextPosition;
+    nextPosition.X = snake->segments[0].X;
+    nextPosition.Y = snake->segments[0].Y;
+
+    if (direction == KeyboardDir_Up) {
+        nextPosition.Y = (snake->segments[0].Y == 1) ? ROWS : snake->segments[0].Y - 1;
+    }
+    if (direction == KeyboardDir_Down) {
+        nextPosition.Y = (snake->segments[0].Y == ROWS) ? 1 : snake->segments[0].Y + 1;
+    }
+    if (direction == KeyboardDir_Left) {
+        nextPosition.X = (snake->segments[0].X == 1) ? COLS : snake->segments[0].X - 1;
+    }
+    if (direction == KeyboardDir_Right) {
+        nextPosition.X = (snake->segments[0].X == COLS) ? 1 : snake->segments[0].X + 1;
+    }
+
+    return nextPosition;
+}
+
 
 #define clrscr() printf("\e[1;1H\e[2J")
 void gotoxy(int x,int y){
+
     printf("%c[%d;%df",0x1B,y,x);
 }
 
+int score = 0;
+char *scoreText = "Score : ";
+
+
+void updateScore(){
+    gotoxy(0, 30);
+    printf("\r");
+    printf("%s",scoreText);
+    printf("%d", score);
+}
+
+void increaseScore(){
+    score += 100;
+    updateScore();
+}
+
 void drawBoundaries(){
-    for(int row = 0; row < ROWS+2; row++){
+    for(int row = 0; row < ROWS+2;row++){
         for(int col = 0; col < COLS+2; col++){
             if(row == 0 || row == ROWS+1 || col == 0 || col == COLS+1){
                 printf("%c",WALL);         
@@ -63,8 +114,10 @@ void drawBoundaries(){
             }
         }
         printf("\n");
+        
     }
 }
+
 
 void drawSnake(Snake *snake) {
     for (int i = 0; i < snake->length; i++) {
@@ -87,12 +140,7 @@ void clearSnake(Snake *snake) {
     }
 }
 
-typedef enum {
-    KeyboardDir_Left,    
-    KeyboardDir_Right,
-    KeyboardDir_Up,
-    KeyboardDir_Down,
-}KeyboardDir;
+
 
 int kbhit2()
 {
@@ -101,13 +149,18 @@ int kbhit2()
 
 int getNextKeyboardAction(){
     if(kbhit2()){
+        //gotoxy(0,ROWS+3);
+        //printf("Ange vad den ska göra:");
         char ch = getch();
+        //printf("%d",ch);
         return ch;
     }
     return 0;
 }
 
-int directionCounter = 0;  
+int directionCounter = 0;
+
+
 void moveSnake(Snake *snake, KeyboardDir direction) {
     
     for (int i = snake->length - 1; i > 0; i--) {
@@ -129,7 +182,6 @@ void moveSnake(Snake *snake, KeyboardDir direction) {
 
     
     directionCounter++;
-
     
     if (directionCounter >= 3) {
         snake->length++;  
