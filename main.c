@@ -1,4 +1,5 @@
 
+
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
@@ -44,12 +45,35 @@ typedef struct{
     int Y;
 }Snake;
 
+typedef struct{
+    int X;
+    int Y;
+}Position;
+
+Position getNextPosition(Snake snake, KeyboardDir direction) {
+    Position nextPosition;
+    nextPosition.X = snake.X;
+    nextPosition.Y = snake.Y;
+
+    if (direction == KeyboardDir_Up) {
+        nextPosition.Y = (nextPosition.Y == 2) ? ROWS + 1 : nextPosition.Y - 1;
+    } else if (direction == KeyboardDir_Down) {
+        nextPosition.Y = (nextPosition.Y == ROWS + 1) ? 2 : nextPosition.Y + 1;
+    } else if (direction == KeyboardDir_Left) {
+        nextPosition.X = (nextPosition.X == 2) ? COLS + 1 : nextPosition.X - 1;
+    } else if (direction == KeyboardDir_Right) {
+        nextPosition.X = (nextPosition.X == COLS + 1) ? 2 : nextPosition.X + 1;
+    }
+
+    return nextPosition;
+}
+
 
 #define clrscr() printf("\e[1;1H\e[2J")
 void gotoxy(int x,int y){
+
     printf("%c[%d;%df",0x1B,y,x);
 }
-
 
 
 void drawBoundaries(){
@@ -106,6 +130,8 @@ int getNextKeyboardAction(){
 
 
 void moveSnake(Snake *snake,KeyboardDir direction){
+
+
     if(direction == KeyboardDir_Up){
         if(snake->Y == 2) snake->Y = ROWS+1;
         else snake->Y--;
@@ -122,7 +148,6 @@ void moveSnake(Snake *snake,KeyboardDir direction){
         if(snake->X == COLS+1) snake->X = 2;
         else snake->X++;
     }
-
 
 }
 
@@ -148,4 +173,3 @@ int main(){
     }
     return 1;
 }
-
