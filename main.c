@@ -38,16 +38,17 @@ int msleep(long msec)
 #define ROWS 10 // 2-9
 #define COLS 30 // 2-29
 #define WALL '#'
-
-typedef struct{
-    int X;
-    int Y;
-}Snake;
+#define INITIALSNAKELENGTH 2
 
 typedef struct{
     int X;
     int Y;
 }Position;
+
+typedef struct{
+    Position segments[ROWS * COLS];
+    int length;
+}Snake;
 
 typedef enum {
     KeyboardDir_Left,    
@@ -57,19 +58,23 @@ typedef enum {
 }KeyboardDir;
 
 
-Position getNextPosition(Snake snake, KeyboardDir direction) {
+
+Position getNextPosition(Snake *snake, KeyboardDir direction) {
     Position nextPosition;
-    nextPosition.X = snake.X;
-    nextPosition.Y = snake.Y;
+    nextPosition.X = snake->segments[0].X;
+    nextPosition.Y = snake->segments[0].Y;
 
     if (direction == KeyboardDir_Up) {
-        nextPosition.Y = (nextPosition.Y == 2) ? ROWS + 1 : nextPosition.Y - 1;
-    } else if (direction == KeyboardDir_Down) {
-        nextPosition.Y = (nextPosition.Y == ROWS + 1) ? 2 : nextPosition.Y + 1;
-    } else if (direction == KeyboardDir_Left) {
-        nextPosition.X = (nextPosition.X == 2) ? COLS + 1 : nextPosition.X - 1;
-    } else if (direction == KeyboardDir_Right) {
-        nextPosition.X = (nextPosition.X == COLS + 1) ? 2 : nextPosition.X + 1;
+        nextPosition.Y = (snake->segments[0].Y == 1) ? ROWS : snake->segments[0].Y - 1;
+    }
+    if (direction == KeyboardDir_Down) {
+        nextPosition.Y = (snake->segments[0].Y == ROWS) ? 1 : snake->segments[0].Y + 1;
+    }
+    if (direction == KeyboardDir_Left) {
+        nextPosition.X = (snake->segments[0].X == 1) ? COLS : snake->segments[0].X - 1;
+    }
+    if (direction == KeyboardDir_Right) {
+        nextPosition.X = (snake->segments[0].X == COLS) ? 1 : snake->segments[0].X + 1;
     }
 
     return nextPosition;
@@ -114,14 +119,25 @@ void drawBoundaries(){
 }
 
 
-void drawSnake(Snake snake){
-    gotoxy(snake.X,snake.Y);
-    printf("@");
+void drawSnake(Snake *snake) {
+    for (int i = 0; i < snake->length; i++) {
+        if (i == 0) {
+            // Huvudet
+            gotoxy(snake->segments[i].X, snake->segments[i].Y);
+            printf("O");
+        } else {
+            // Svansen
+            gotoxy(snake->segments[i].X, snake->segments[i].Y);
+            printf("o");
+        }
+    }
 }
 
-void clearSnake(Snake snake){
-    gotoxy(snake.X,snake.Y);
-    printf(" ");
+void clearSnake(Snake *snake) {
+    for (int i = 0; i < snake->length; i++) {
+        gotoxy(snake->segments[i].X, snake->segments[i].Y);
+        printf(" ");
+    }
 }
 
 
@@ -142,47 +158,64 @@ int getNextKeyboardAction(){
     return 0;
 }
 
-void moveSnake(Snake *snake,KeyboardDir direction){
+int directionCounter = 0;
+
+
+void moveSnake(Snake *snake, KeyboardDir direction) {
     
-
-    if(direction == KeyboardDir_Up){
-        if(snake->Y == 2) snake->Y = ROWS+1;
-        else snake->Y--;
-    }
-    if(direction == KeyboardDir_Down){
-        if(snake->Y == ROWS+1) snake->Y = 2;
-        else snake->Y++;
-    }
-    if(direction == KeyboardDir_Left){
-        if(snake->X == 2) snake->X = COLS+1;
-        else snake->X--;
-    }
-    if(direction == KeyboardDir_Right){
-        if(snake->X == COLS+1) snake->X = 2;
-        else snake->X++;
+    for (int i = snake->length - 1; i > 0; i--) {
+        snake->segments[i] = snake->segments[i - 1];
     }
 
+    if (direction == KeyboardDir_Up) {
+        snake->segments[0].Y = (snake->segments[0].Y == 1) ? ROWS : snake->segments[0].Y - 1;
+    }
+    if (direction == KeyboardDir_Down) {
+        snake->segments[0].Y = (snake->segments[0].Y == ROWS) ? 1 : snake->segments[0].Y + 1;
+    }
+    if (direction == KeyboardDir_Left) {
+        snake->segments[0].X = (snake->segments[0].X == 1) ? COLS : snake->segments[0].X - 1;
+    }
+    if (direction == KeyboardDir_Right) {
+        snake->segments[0].X = (snake->segments[0].X == COLS) ? 1 : snake->segments[0].X + 1;
+    }
+
+    
+    directionCounter++;
+    
+    if (directionCounter >= 3) {
+        snake->length++;  
+        directionCounter = 0;
+    }
 }
 
 int main(){
     Snake snake;
-    snake.X = 5; 
-    snake.Y = 5;
+    snake.length = INITIALSNAKELENGTH;
+    for (int i = 0; i < snake.length; i++) {
+        snake.segments[i].X = 5 - i;
+        snake.segments[i].Y = 5;
+    }
+    
     clrscr();
     hideCursor();
-    drawBoundaries(1);
+    drawBoundaries();
+
     while(1){
-        //clrscr();
-        //drawBoundaries(1);
-        clearSnake(snake);
-        gotoxy(0,0);
+        clearSnake(&snake);
+        gotoxy(0,0); 
         char ch = getNextKeyboardAction();
-        if(ch == 'w') moveSnake(&snake,KeyboardDir_Up);
-        else if(ch == 's') moveSnake(&snake,KeyboardDir_Down);
-        else if(ch == 'a') moveSnake(&snake,KeyboardDir_Left);
-        else if(ch == 'd') moveSnake(&snake,KeyboardDir_Right);
-        drawSnake(snake);
+        
+       
+        if(ch == 'w') moveSnake(&snake, KeyboardDir_Up);
+        else if(ch == 's') moveSnake(&snake, KeyboardDir_Down);
+        else if(ch == 'a') moveSnake(&snake, KeyboardDir_Left);
+        else if(ch == 'd') moveSnake(&snake, KeyboardDir_Right);
+
+        
+        drawSnake(&snake);
+        
         msleep(250);
     }
-    return 1;
+    return 0;
 }
