@@ -59,6 +59,7 @@ typedef struct {
 typedef struct{
     Position segments[ROWS * COLS];
     int length;
+    KeyboardDir lastDir;
 }Snake;
 
 
@@ -195,6 +196,7 @@ void moveSnake(Snake *snake, KeyboardDir direction) {
     if (direction == KeyboardDir_Right) {
         snake->segments[0].X = (snake->segments[0].X == COLS) ? 1 : snake->segments[0].X + 1;
     }
+    snake->lastDir = direction;
 }
 
 int main() {
@@ -227,7 +229,7 @@ int main() {
         else if (ch == 's') moveSnake(&snake, KeyboardDir_Down);
         else if (ch == 'a') moveSnake(&snake, KeyboardDir_Left);
         else if (ch == 'd') moveSnake(&snake, KeyboardDir_Right);
-        
+        moveSnake(&snake, snake.lastDir);
         drawSnake(&snake);
         drawApple(apple);
         msleep(250);
