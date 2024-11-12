@@ -51,6 +51,14 @@ typedef struct{
     int Y;
 }Position;
 
+typedef enum {
+    KeyboardDir_Left,    
+    KeyboardDir_Right,
+    KeyboardDir_Up,
+    KeyboardDir_Down,
+}KeyboardDir;
+
+
 Position getNextPosition(Snake snake, KeyboardDir direction) {
     Position nextPosition;
     nextPosition.X = snake.X;
@@ -118,12 +126,6 @@ void clearSnake(Snake snake){
     printf(" ");
 }
 
-typedef enum {
-    KeyboardDir_Left,    
-    KeyboardDir_Right,
-    KeyboardDir_Up,
-    KeyboardDir_Down,
-}KeyboardDir;
 
 
 int kbhit2()
@@ -143,7 +145,7 @@ int getNextKeyboardAction(){
 }
 
 void moveSnake(Snake *snake,KeyboardDir direction){
-
+    
 
     if(direction == KeyboardDir_Up){
         if(snake->Y == 2) snake->Y = ROWS+1;
@@ -161,7 +163,6 @@ void moveSnake(Snake *snake,KeyboardDir direction){
         if(snake->X == COLS+1) snake->X = 2;
         else snake->X++;
     }
-    increaseScore();
 
 }
 
