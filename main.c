@@ -171,7 +171,6 @@ void moveSnake(Snake *snake, KeyboardDir direction) {
     for (int i = snake->length - 1; i > 0; i--) {
         snake->segments[i] = snake->segments[i - 1];
     }
-
     if (direction == KeyboardDir_Up) {
         snake->segments[0].Y = (snake->segments[0].Y == 1) ? ROWS : snake->segments[0].Y - 1;
     }
