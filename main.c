@@ -163,11 +163,22 @@ int getNextKeyboardAction() {
     return 0;
 }
 
-int directionCounter = 0;
-
+void gameOver(){
+    printf("GAME OVER LOSER\n");
+    exit(1);
+}
 
 void moveSnake(Snake *snake, KeyboardDir direction) {
     
+    Position nextPos = getNextPosition(snake, direction);
+    for (size_t i = 0; i < snake->length; i++)
+    {
+        if(nextPos.X == snake->segments[i].X && nextPos.Y == snake->segments[i].Y){
+            gameOver();
+        }
+    }
+    
+
     for (int i = snake->length - 1; i > 0; i--) {
         snake->segments[i] = snake->segments[i - 1];
     }
@@ -183,14 +194,6 @@ void moveSnake(Snake *snake, KeyboardDir direction) {
     }
     if (direction == KeyboardDir_Right) {
         snake->segments[0].X = (snake->segments[0].X == COLS) ? 1 : snake->segments[0].X + 1;
-    }
-
-    
-    directionCounter++;
-    
-    if (directionCounter >= 3) {
-        snake->length++;  
-        directionCounter = 0;
     }
 }
 
